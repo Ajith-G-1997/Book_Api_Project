@@ -1,9 +1,8 @@
-# books/views.py
 from rest_framework import generics
-from .models import Author, Book
-from .serializers import AuthorSerializer, BookSerializer
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from .models import Author, Book, Store
+from .serializers import AuthorSerializer, BookSerializer, StoreSerializer
+from rest_framework.generics import ListAPIView
+from django.db.models import Count
 
 class AuthorList(generics.ListCreateAPIView):
     queryset = Author.objects.all()
@@ -14,19 +13,16 @@ class AuthorDetail(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AuthorSerializer
 
 class BookList(generics.ListCreateAPIView):
-    queryset = Book.objects.select_related('author').all() 
+    queryset = Book.objects.select_related('author').all()
     serializer_class = BookSerializer
 
 class BookDetail(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Book.objects.select_related('author').all()  
+    queryset = Book.objects.select_related('author').all()
     serializer_class = BookSerializer
 
+class StoreListView(ListAPIView):
+    serializer_class = StoreSerializer
 
-class First(APIView):
-    def get(self, request):
-        first_book = Book.objects.select_related('author').first()
-        if first_book:
-            author_name = first_book.author.name
-            return Response({'author': author_name})
-        else:
-            return Response({'message': 'No movies found'})
+    def get_queryset(self):
+        # Use annotate to count the number of books for each store.
+        return Store.objects.annotate(num_books=Count('books')).prefetch_related('books')

@@ -14,3 +14,8 @@ class Book(models.Model):
 
     def __str__(self):
         return self.title
+    
+
+class Store(models.Model):
+    name=models.CharField(max_length=15)
+    books=models.ManyToManyField(Book)
